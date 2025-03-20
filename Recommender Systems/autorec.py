@@ -31,6 +31,9 @@ class AutoRec(nn.Module):
         
         # Set device
         self.device = device
+
+        # Move model to the specified device
+        self.to(device)
     
     def forward(self, x):
         """
@@ -42,7 +45,8 @@ class AutoRec(nn.Module):
         Returns:
             outputs (torch.Tensor): Reconstructed input tensor (predicted the user-item interactions)
         """
-        
+        x = x.to(self.device)  # Move input tensor to the model's device
+
         hidden = torch.sigmoid(self.encode(x))
         outputs = torch.sigmoid(self.decode(hidden))
 
@@ -64,13 +68,16 @@ class AutoRec(nn.Module):
 
         with torch.no_grad():
             for batch in test_loader:
-                inputs = batch[0]   
+                inputs = batch[0].to(self.device)  # Move inputs to device
                 #Compute the forward NN        
                 preds= self.forward(inputs)
                 loss = criterion(preds, inputs)
+                print(f"Predictions: {preds[:5]}")
+                print(f"True inputs: {inputs[:5]}")
                 total_loss += loss
                 count += 1
-        return np.sqrt(total_loss / count)
+        return np.sqrt((total_loss / count).cpu().numpy())  # Move to CPU and convert
+
 
     def train_model(self, train_loader, val_loader, num_epochs, num_step=10, lr=0.002, reg=1e-5, gamma=0.1):
         """
@@ -100,7 +107,7 @@ class AutoRec(nn.Module):
             start_time = time.time()
 
             for batch in train_loader:
-                inputs = batch[0]
+                inputs = batch[0].to(self.device)  # Move batch to the correct device
 
                 # Zero the parameter gradient
                 optimizer.zero_grad()
@@ -120,14 +127,15 @@ class AutoRec(nn.Module):
                 count += 1
             # Compute training and validation loss
             train_loss = total_loss / count
-            val_loss = self.evaluate(val_loader)
+            # val_loss = self.evaluate(val_loader)
+            val_loss = 0 
 
             # Update learning rate
             scheduler.step()
 
             # Store losses
             train_losses.append(train_loss)
-            val_losses.append(val_loss)
+            # val_losses.append(val_loss)
             elapsed_time = time.time() - start_time
             print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Time: {elapsed_time:.2f}s")
         return train_losses, val_losses

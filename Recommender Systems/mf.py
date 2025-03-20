@@ -54,6 +54,8 @@ class MF(nn.Module):
             torch.Tensor: Predicted ratings using the formula:
                 prediction = (P * Q).sum(dim=1) + b_u + b_i
         """
+        user_id = user_id.to(self.device)
+        item_id = item_id.to(self.device)
         P_u = self.user_factors(user_id)  # User latent vectors
         Q_i = self.item_factors(item_id)  # Item latent vectors
         b_u = self.user_bias(user_id).squeeze()  # User bias
@@ -141,6 +143,6 @@ class MF(nn.Module):
             val_losses.append(val_loss)
 
             elapsed_time = time.time() - start_time
-            print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, Time: {elapsed_time:.2f}s")
+            print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {train_loss:.4f}, Time: {elapsed_time:.2f}s")
 
         return train_losses, val_losses
