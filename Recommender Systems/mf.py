@@ -58,7 +58,7 @@ class MF(nn.Module):
         # After num_step epochs, the learning rate will decay a value "lr"
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=num_step, gamma=gamma)
         
-        loss_fn = nn.MSELos
+        loss_fn = nn.MSELoss()
         train_losses, val_losses = [], []
         for epoch in range(num_epochs):
             self.train() # Set to training mode
